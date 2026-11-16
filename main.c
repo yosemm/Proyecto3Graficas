@@ -27,6 +27,24 @@ CameraRay cam;
 
 
 
+typedef struct
+{
+    Vector3 centro;
+    float radio;
+} Esfera;
+
+#define NUM_ESFERAS 5
+
+Esfera esferas[NUM_ESFERAS] = {
+    {.centro = {0, 0, 0}, .radio = 1.5f},
+    {.centro = {4, 0, 0}, .radio = 0.9f},
+    {.centro = {-3.5f, 0, 3}, .radio = 1.0f},
+    {.centro = {2.5f, 0, -5.5f}, .radio = 0.7f},
+    {.centro = {-1.8f, 0, 4.2f}, .radio = 0.3f},
+};
+
+
+
 void cameraLook(CameraRay *camera, Vector3 target)
 {
     camera->forward = Vector3Normalize(Vector3Subtract(target, camera->position));
@@ -52,11 +70,59 @@ Vector3 cielo(Vector3 direccion)
     return (Vector3){0.02f, 0.02f, 0.06f};
 }
 
+RayCollision colisionEsfera(Vector3 origen, Vector3 direccion, Vector3 centro, float radio)
+{
+    RayCollision choque = {0};
 
+    Vector3 oc = Vector3Subtract(origen, centro);
+    float b = Vector3DotProduct(oc, direccion);
+    float c = Vector3DotProduct(oc, oc) - radio * radio;
+    float discriminante = b * b - c;
+
+    if (discriminante < 0)
+    {
+        return choque;
+    }
+
+    float entrada = -b - sqrtf(discriminante);
+    if (entrada < 0)
+    {
+        return choque;
+    }
+
+    choque.hit = true;
+    choque.distance = entrada;
+    choque.point = Vector3Add(origen, Vector3Scale(direccion, entrada));
+    choque.normal = Vector3Normalize(Vector3Subtract(choque.point, centro));
+
+    return choque;
+}
 
 Vector3 castRay(Vector3 origen, Vector3 direccion)
 {
-    return cielo(direccion);
+
+    RayCollision choque = {0};
+    choque.distance = 1000.0f;
+    int indice = -1;
+    for (int i = 0; i < NUM_ESFERAS; i++)
+    {
+        RayCollision colision = colisionEsfera(origen, direccion, esferas[i].centro, esferas[i].radio);
+        if (colision.hit && colision.distance < choque.distance)
+        {
+            choque = colision;
+            indice = i;
+        }
+    }
+
+    if (indice == -1)
+    {
+        return cielo(direccion);
+    }
+
+    Vector3 coloresEsferas[NUM_ESFERAS] = {
+        {1.0f, 0.8f, 0.1f}, {0.8f, 0.5f, 0.2f}, {0.1f, 0.4f, 0.9f},
+        {0.8f, 0.2f, 0.1f}, {0.6f, 0.6f, 0.6f}};
+    return coloresEsferas[indice];
 }
 
 
