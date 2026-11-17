@@ -1,8 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #define ANCHO 640
 #define ALTO 360
@@ -31,6 +29,9 @@ typedef struct
 {
     Vector3 centro;
     float radio;
+    Color *pixelesTextura;
+    int anchoTextura;
+    int altoTextura;
 } Esfera;
 
 #define NUM_ESFERAS 5
@@ -42,6 +43,7 @@ Esfera esferas[NUM_ESFERAS] = {
     {.centro = {2.5f, 0, -5.5f}, .radio = 0.7f},
     {.centro = {-1.8f, 0, 4.2f}, .radio = 0.3f},
 };
+const char *archivosTextura[NUM_ESFERAS] = {"texturas/suntexture.png", "texturas/venus.png", "texturas/earth.png", "texturas/mars.png", "texturas/moontexture.png"};
 
 
 
@@ -59,8 +61,6 @@ Color vectorColor(Vector3 c)
     c.z = Clamp(c.z, 0, 1);
     return (Color){(unsigned char)(c.x * 255), (unsigned char)(c.y * 255), (unsigned char)(c.z * 255), 255};
 }
-
-
 
 
 
@@ -151,7 +151,19 @@ int main(void)
     Texture2D texturaColores = LoadTextureFromImage(imagenNegro);
 
 
-
+    for (int i = 0; i < NUM_ESFERAS; i++)
+    {
+        Image imagen = LoadImage(archivosTextura[i]);
+        if (imagen.data == 0)
+        {
+            CloseWindow();
+            return 1;
+        }
+        esferas[i].anchoTextura = imagen.width;
+        esferas[i].altoTextura = imagen.height;
+        esferas[i].pixelesTextura = LoadImageColors(imagen);
+        UnloadImage(imagen);
+    }
 
 
 
@@ -181,7 +193,10 @@ int main(void)
         EndDrawing();
     }
 
-
+    for (int i = 0; i < NUM_ESFERAS; i++)
+    {
+        UnloadImageColors(esferas[i].pixelesTextura);
+    }
 
     UnloadTexture(texturaColores);
     CloseWindow();
