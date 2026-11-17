@@ -119,10 +119,21 @@ Vector3 castRay(Vector3 origen, Vector3 direccion)
         return cielo(direccion);
     }
 
-    Vector3 coloresEsferas[NUM_ESFERAS] = {
-        {1.0f, 0.8f, 0.1f}, {0.8f, 0.5f, 0.2f}, {0.1f, 0.4f, 0.9f},
-        {0.8f, 0.2f, 0.1f}, {0.6f, 0.6f, 0.6f}};
-    return coloresEsferas[indice];
+    Esfera esfera = esferas[indice];
+
+
+    float u = 0.5f + atan2f(-choque.normal.z, choque.normal.x) / (2 * PI);
+    float v = 0.5f - asinf(choque.normal.y) / PI;
+    int px = (int)(u * (esfera.anchoTextura - 1));
+    int py = (int)(v * (esfera.altoTextura - 1));
+    int indiceTextura = py * esfera.anchoTextura + px;
+
+    Vector3 colorTextura = {
+        esfera.pixelesTextura[indiceTextura].r / 255.0f,
+        esfera.pixelesTextura[indiceTextura].g / 255.0f,
+        esfera.pixelesTextura[indiceTextura].b / 255.0f};
+
+    return colorTextura;
 }
 
 
