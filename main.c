@@ -21,7 +21,7 @@ typedef struct
 
 CameraRay cam;
 
-
+Vector3 posLuz = {0, 0, 0}; 
 
 
 
@@ -133,7 +133,30 @@ Vector3 castRay(Vector3 origen, Vector3 direccion)
         esfera.pixelesTextura[indiceTextura].g / 255.0f,
         esfera.pixelesTextura[indiceTextura].b / 255.0f};
 
-    return colorTextura;
+    if (indice == 0)
+    {
+        Vector3 colorSol = colorTextura;
+        float bordeSol = powf(1 - fmaxf(0, Vector3DotProduct(choque.normal, Vector3Negate(direccion))), 3);
+        colorSol = Vector3Add(colorSol, Vector3Scale((Vector3){1, 1, 1}, bordeSol));
+        return colorSol;
+    }
+
+
+    Vector3 dirLuz = Vector3Normalize(Vector3Subtract(posLuz, choque.point));
+    float difusa = fmaxf(0, Vector3DotProduct(choque.normal, dirLuz));
+    Vector3 color = Vector3Scale(colorTextura, 0.25f + 1.5f * difusa);
+
+
+    Vector3 reflejo = Vector3Reflect(Vector3Negate(dirLuz), choque.normal);
+    float especular = powf(fmaxf(0, Vector3DotProduct(reflejo, Vector3Negate(direccion))), 32);
+    color = Vector3Add(color, Vector3Scale((Vector3){1, 1, 1}, 0.6f * especular));
+
+
+
+    float borde = powf(1 - fmaxf(0, Vector3DotProduct(choque.normal, Vector3Negate(direccion))), 3);
+    color = Vector3Add(color, Vector3Scale((Vector3){0.3f, 0.9f, 1.0f}, borde));
+
+    return color;
 }
 
 
