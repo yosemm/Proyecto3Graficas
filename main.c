@@ -45,6 +45,9 @@ Esfera esferas[NUM_ESFERAS] = {
 };
 const char *archivosTextura[NUM_ESFERAS] = {"texturas/suntexture.png", "texturas/venus.png", "texturas/earth.png", "texturas/mars.png", "texturas/moontexture.png"};
 
+Color *pixelesCielo;
+int anchoCielo;
+int altoCielo;
 
 
 void cameraLook(CameraRay *camera, Vector3 target)
@@ -67,7 +70,20 @@ Color vectorColor(Vector3 c)
 
 Vector3 cielo(Vector3 direccion)
 {
-    return (Vector3){0.02f, 0.02f, 0.06f};
+    float u = 0.5f + atan2f(direccion.z, direccion.x) / (2 * PI);
+    float v = 0.5f - asinf(direccion.y) / PI;
+    int px = (int)(u * (anchoCielo - 1));
+    int py = (int)(v * (altoCielo - 1));
+    int indiceCielo = py * anchoCielo + px;
+
+    Vector3 fondo = {
+        pixelesCielo[indiceCielo].r / 255.0f,
+        pixelesCielo[indiceCielo].g / 255.0f,
+        pixelesCielo[indiceCielo].b / 255.0f};
+
+    float horizonte = powf(1 - fabsf(direccion.y), 3);
+    fondo = Vector3Add(fondo, Vector3Scale((Vector3){0.2f, 0.7f, 0.8f}, 0.25f * horizonte));
+    return fondo;
 }
 
 RayCollision colisionEsfera(Vector3 origen, Vector3 direccion, Vector3 centro, float radio)
@@ -199,7 +215,16 @@ int main(void)
         UnloadImage(imagen);
     }
 
-
+    Image imagenCielo = LoadImage("texturas/milkyway.png");
+    if (imagenCielo.data == 0)
+    {
+        CloseWindow();
+        return 1;
+    }
+    anchoCielo = imagenCielo.width;
+    altoCielo = imagenCielo.height;
+    pixelesCielo = LoadImageColors(imagenCielo);
+    UnloadImage(imagenCielo);
 
     while (!WindowShouldClose())
     {
@@ -231,7 +256,7 @@ int main(void)
     {
         UnloadImageColors(esferas[i].pixelesTextura);
     }
-
+    UnloadImageColors(pixelesCielo);
     UnloadTexture(texturaColores);
     CloseWindow();
     return 0;
