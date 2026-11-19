@@ -176,7 +176,17 @@ Vector3 castRay(Vector3 origen, Vector3 direccion)
 }
 
 
-
+bool camaraEsfera(Vector3 punto)
+{
+    for (int i = 0; i < NUM_ESFERAS; i++)
+    {
+        if (Vector3Distance(punto, esferas[i].centro) < esferas[i].radio + 0.3f)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 int main(void)
 {
@@ -243,8 +253,19 @@ int main(void)
             nuevaPosicion = Vector3Add(cam.position, Vector3Scale(frente, velocidad * delta));
         if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
             nuevaPosicion = Vector3Subtract(cam.position, Vector3Scale(frente, velocidad * delta));
-        cam.position = nuevaPosicion;
+        if (!camaraEsfera(nuevaPosicion))
+            cam.position = nuevaPosicion;
 
+        int destinos[4] = {4, 1, 2, 3};
+        for (int i = 0; i < 4; i++)
+        {
+            if (IsKeyPressed(KEY_ONE + i))
+            {
+                Esfera destino = esferas[destinos[i]];
+                cam.position = (Vector3){destino.centro.x, 1, destino.centro.z + destino.radio * 3 + 1};
+                anguloHorizontal = 0;
+            }
+        }
         frente = (Vector3){sinf(anguloHorizontal), 0, -cosf(anguloHorizontal)};
 
         cameraLook(&cam, Vector3Add(cam.position, frente));
