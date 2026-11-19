@@ -21,7 +21,7 @@ typedef struct
 
 CameraRay cam;
 
-Vector3 posLuz = {0, 0, 0}; 
+Vector3 posLuz = {0, 0, 0};
 // El sol es mi fuente para iluminar los planetas
 
 // Struct para las esferas
@@ -49,7 +49,8 @@ Color *pixelesCielo;
 int anchoCielo;
 int altoCielo;
 
-// Tener la camara y las colisiones de los rayos es algo que se repite de mi proyecto 2 y me apoyé en el
+// Para volver a implementar la camara y las colisiones de los rayos me apoyé de mi proyecto 2, pero para
+// entender la formula de colisiones con esferas me fue de apoyo Claude.
 void cameraLook(CameraRay *camera, Vector3 target)
 {
     camera->forward = Vector3Normalize(Vector3Subtract(target, camera->position));
