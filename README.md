@@ -1,5 +1,9 @@
 # Proyecto 3 de Gráficas por Computadora
 
+## Video explicando:
+
+https://youtu.be/rm3UTYwSMDI
+
 ## Programa funcionando:
 
 https://github.com/user-attachments/assets/16dc7b9e-a853-4973-9992-126830dd44ae
