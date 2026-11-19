@@ -189,7 +189,9 @@ int main(void)
     float mitad = tanf(60 * DEG2RAD / 2);
     float aspecto = (float)ANCHO / ALTO;
 
+    float anguloHorizontal = 0;
     cam.position = (Vector3){0, 1, 10};
+    float velocidad = 4;
 
 
     Image imagenNegro = {
@@ -228,7 +230,22 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        Vector3 frente = {0, 0, -1};
+        float delta = GetFrameTime();
+        if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
+            anguloHorizontal -= 1.5f * delta;
+        if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))
+            anguloHorizontal += 1.5f * delta;
+
+        Vector3 frente = {sinf(anguloHorizontal), 0, -cosf(anguloHorizontal)};
+
+        Vector3 nuevaPosicion = cam.position;
+        if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W))
+            nuevaPosicion = Vector3Add(cam.position, Vector3Scale(frente, velocidad * delta));
+        if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
+            nuevaPosicion = Vector3Subtract(cam.position, Vector3Scale(frente, velocidad * delta));
+        cam.position = nuevaPosicion;
+
+        frente = (Vector3){sinf(anguloHorizontal), 0, -cosf(anguloHorizontal)};
 
         cameraLook(&cam, Vector3Add(cam.position, frente));
 
