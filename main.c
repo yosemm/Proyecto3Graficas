@@ -7,10 +7,10 @@
 #define PIXELES (ANCHO * ALTO)
 #define ESCALA 2
 
-
+// Array de pixeles a pintar
 Color colores[PIXELES];
 
-
+// Mi struct para la camara
 typedef struct
 {
     Vector3 position;
@@ -22,9 +22,9 @@ typedef struct
 CameraRay cam;
 
 Vector3 posLuz = {0, 0, 0}; 
+// El sol es mi fuente para iluminar los planetas
 
-
-
+// Struct para las esferas
 typedef struct
 {
     Vector3 centro;
@@ -37,11 +37,11 @@ typedef struct
 #define NUM_ESFERAS 5
 
 Esfera esferas[NUM_ESFERAS] = {
-    {.centro = {0, 0, 0}, .radio = 1.5f},
-    {.centro = {4, 0, 0}, .radio = 0.9f},
-    {.centro = {-3.5f, 0, 3}, .radio = 1.0f},
-    {.centro = {2.5f, 0, -5.5f}, .radio = 0.7f},
-    {.centro = {-1.8f, 0, 4.2f}, .radio = 0.3f},
+    {.centro = {0, 0, 0}, .radio = 1.5f},        // Sol
+    {.centro = {4, 0, 0}, .radio = 0.9f},        // Venus
+    {.centro = {-3.5f, 0, 3}, .radio = 1.0f},    // Tierra
+    {.centro = {2.5f, 0, -5.5f}, .radio = 0.7f}, // Marte
+    {.centro = {-1.8f, 0, 4.2f}, .radio = 0.3f}, // Luna
 };
 const char *archivosTextura[NUM_ESFERAS] = {"texturas/suntexture.png", "texturas/venus.png", "texturas/earth.png", "texturas/mars.png", "texturas/moontexture.png"};
 
@@ -49,7 +49,7 @@ Color *pixelesCielo;
 int anchoCielo;
 int altoCielo;
 
-
+// Tener la camara y las colisiones de los rayos es algo que se repite de mi proyecto 2 y me apoyé en el
 void cameraLook(CameraRay *camera, Vector3 target)
 {
     camera->forward = Vector3Normalize(Vector3Subtract(target, camera->position));
@@ -65,9 +65,7 @@ Color vectorColor(Vector3 c)
     return (Color){(unsigned char)(c.x * 255), (unsigned char)(c.y * 255), (unsigned char)(c.z * 255), 255};
 }
 
-
-
-
+// Skybox usando la textura de estrellas
 Vector3 cielo(Vector3 direccion)
 {
     float u = 0.5f + atan2f(direccion.z, direccion.x) / (2 * PI);
@@ -116,7 +114,7 @@ RayCollision colisionEsfera(Vector3 origen, Vector3 direccion, Vector3 centro, f
 
 Vector3 castRay(Vector3 origen, Vector3 direccion)
 {
-
+    // Me quedo con la esfera más cercana
     RayCollision choque = {0};
     choque.distance = 1000.0f;
     int indice = -1;
@@ -137,7 +135,7 @@ Vector3 castRay(Vector3 origen, Vector3 direccion)
 
     Esfera esfera = esferas[indice];
 
-
+    // Para las coordenadas UV tambien me apoye en Claude para que las texturas quedaran bien en las esferas y en el cielo
     float u = 0.5f + atan2f(-choque.normal.z, choque.normal.x) / (2 * PI);
     float v = 0.5f - asinf(choque.normal.y) / PI;
     int px = (int)(u * (esfera.anchoTextura - 1));
@@ -157,25 +155,25 @@ Vector3 castRay(Vector3 origen, Vector3 direccion)
         return colorSol;
     }
 
-
+    // Difusa
     Vector3 dirLuz = Vector3Normalize(Vector3Subtract(posLuz, choque.point));
     float difusa = fmaxf(0, Vector3DotProduct(choque.normal, dirLuz));
     Vector3 color = Vector3Scale(colorTextura, 0.25f + 1.5f * difusa);
 
-
+    // Especular
     Vector3 reflejo = Vector3Reflect(Vector3Negate(dirLuz), choque.normal);
     float especular = powf(fmaxf(0, Vector3DotProduct(reflejo, Vector3Negate(direccion))), 32);
     color = Vector3Add(color, Vector3Scale((Vector3){1, 1, 1}, 0.6f * especular));
 
-
-
+    // Para hacer este borde, Claude me explicó que el punto entre la normal y la cámara
+    // es 1 en el centro y 0 en las orillas, entonces solo brilla en el borde
     float borde = powf(1 - fmaxf(0, Vector3DotProduct(choque.normal, Vector3Negate(direccion))), 3);
     color = Vector3Add(color, Vector3Scale((Vector3){0.3f, 0.9f, 1.0f}, borde));
 
     return color;
 }
 
-
+// Para que la cámara no atraviese los planetas
 bool camaraEsfera(Vector3 punto)
 {
     for (int i = 0; i < NUM_ESFERAS; i++)
@@ -203,16 +201,16 @@ int main(void)
     cam.position = (Vector3){0, 1, 10};
     float velocidad = 4;
 
-
+    // La textura que voy a pintar
     Image imagenNegro = {
         .data = colores,
         .width = ANCHO,
         .height = ALTO,
         .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8}; // Es el formato que usa LoadImage pero como no puedo usar funciones de dibujo
     Texture2D texturaColores = LoadTextureFromImage(imagenNegro);
 
-
+    // Cargo las texturas
     for (int i = 0; i < NUM_ESFERAS; i++)
     {
         Image imagen = LoadImage(archivosTextura[i]);
@@ -270,7 +268,7 @@ int main(void)
 
         cameraLook(&cam, Vector3Add(cam.position, frente));
 
-
+        // En este ciclo se genera un rayo por pixel y me basé en el proyecto base de la clase
         for (int y = 0; y < ALTO; y++)
         {
             for (int x = 0; x < ANCHO; x++)
@@ -283,7 +281,7 @@ int main(void)
             }
         }
 
-
+        // Lo paso a la textura
         UpdateTexture(texturaColores, colores);
         BeginDrawing();
         DrawTextureEx(texturaColores, (Vector2){0, 0}, 0, ESCALA, WHITE);
